@@ -3,26 +3,68 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 
-train_transforms = transforms.Compose([
-    transforms.RandomApply([transforms.CenterCrop(22), ], p=0.1),#applying random tranforamtion to given image in this case it is applying center crop with the probeblity of 0.1
-    transforms.Resize((28, 28)),#to resize the input image in this case we are changing the input image to 28x28
-    transforms.RandomRotation((-15., 15.), fill=0),#this is for randomly rotate the image between -15 to 15 degree and no padding added
-    transforms.ToTensor(),#this is to convert any PIL image to tensor formate
-    transforms.Normalize((0.1307,), (0.3081,)),#this to normalize the Tensor data for easy data  training
-    ])
+def _train_transforms(): 
+    """_summary_
+    """
+    train_transforms = transforms.Compose([
+        transforms.RandomApply([transforms.CenterCrop(22), ], p=0.1),#applying random tranforamtion to given image in this case it is applying center crop with the probeblity of 0.1
+        transforms.Resize((28, 28)),#to resize the input image in this case we are changing the input image to 28x28
+        transforms.RandomRotation((-15., 15.), fill=0),#this is for randomly rotate the image between -15 to 15 degree and no padding added
+        transforms.ToTensor(),#this is to convert any PIL image to tensor formate
+        transforms.Normalize((0.1307,), (0.3081,)),#this to normalize the Tensor data for easy data  training
+        ])
+    return train_transforms
+
 
 # Test data transformations
-test_transforms = transforms.Compose([
-    transforms.ToTensor(),#this is to convert any PIL image to tensor formate
-    transforms.Normalize((0.1307,), (0.3081,))#this to normalize the Tensor data for easy data  testing.
-    ])
+def _test_transforms():
+    """_summary_
+    """
+    test_transforms = transforms.Compose([
+        transforms.ToTensor(),#this is to convert any PIL image to tensor formate
+        transforms.Normalize((0.1307,), (0.3081,))#this to normalize the Tensor data for easy data  testing.
+        ])
+    return test_transforms
+def train_data():
+    train_data = datasets.MNIST('../data', train=True, download=True, transform=_train_transforms())#for downloading and training of MNIST data set from PyTorch Torchvision
+    return train_data
+def test_data():
+    test_data = datasets.MNIST('../data', train=False, download=True, transform=_test_transforms())#for downloading and testing of MNIST data set from PyTorch Torchvision
+    return test_data
 
-batch_size = 512 # defined Batch size for processing image in one go
+def get_train_loader(batch_size,shuffle,num_workers,pin_memory,train_data):
+    """_summary_
 
-kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}# created dictionary where shuffle of image is allow and specified subprocess to be done using num_workers and to improve the perfomance we used pin memory to tranform the data from cpu to gpu
+    Args:
+        batch_size (_type_): _description_
+        train_data (_type_): _description_
+        shuffle (_type_): _description_
+        num_workers (_type_): _description_
+        pin_memory (_type_): _description_
 
-test_loader = torch.utils.data.DataLoader(test_data, **kwargs)#  to conver dictionary to keyword argument
-train_loader = torch.utils.data.DataLoader(train_data, **kwargs)#  to conver dictionary to keyword argument
+    Returns:
+        _type_: _description_
+    """
+
+    kwargs = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers': num_workers, 'pin_memory': pin_memory}# created dictionary where shuffle of image is allow and specified subprocess to be done using num_workers and to improve the perfomance we used pin memory to tranform the data from cpu to gpu
+    train_loader = torch.utils.data.DataLoader(train_data, **kwargs)#  to conver dictionary to keyword argument
+    return train_loader
+
+def get_test_loader(batch_size,shuffle,num_workers,pin_memory,test_data):
+    """_summary_
+
+    Args:
+        test_data (_type_): _description_
+        batch_size (_type_): _description_
+        shuffle (_type_): _description_
+        num_workers (_type_): _description_
+        pin_memory (_type_): _description_
+    """
+    kwargs = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers': num_workers, 'pin_memory': pin_memory}# created dictionary where shuffle of image is allow and specified subprocess to be done using num_workers and to improve the perfomance we used pin memory to tranform the data from cpu to gpu
+    test_loader = torch.utils.data.DataLoader(test_data, **kwargs)#  to conver dictionary to keyword argument
+    return test_loader
+
+
 
 class Net(nn.Module):
     def __init__(self):
